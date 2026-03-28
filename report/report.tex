@@ -1,0 +1,263 @@
+\documentclass[10pt,a4paper]{article}
+
+% -------------------------------------------------
+% Packages
+% -------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[a4paper,margin=2cm]{geometry}
+\usepackage{microtype}
+\usepackage{setspace}
+\setstretch{1.04}
+
+\usepackage{amsmath,amssymb,amsfonts,mathtools,bm}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{fancyhdr}
+
+% -------------------------------------------------
+% Colors
+% -------------------------------------------------
+\usepackage{xcolor}
+\definecolor{TitleColor}{HTML}{102A43}
+\definecolor{AccentColor}{HTML}{2F80ED}
+\definecolor{SoftBlue}{HTML}{EAF2FF}
+\definecolor{SoftGray}{HTML}{F7F9FC}
+\definecolor{TextGray}{HTML}{3A3A3A}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=AccentColor,
+    citecolor=AccentColor,
+    urlcolor=AccentColor
+}
+
+% -------------------------------------------------
+% Section style
+% -------------------------------------------------
+\titleformat{\section}
+    {\Large\bfseries\color{TitleColor}}
+    {\thesection}{0.6em}{}
+\titleformat{\subsection}
+    {\large\bfseries\color{TitleColor}}
+    {\thesubsection}{0.6em}{}
+
+% -------------------------------------------------
+% Caption style
+% -------------------------------------------------
+\captionsetup{
+    font=small,
+    labelfont={bf,color=TitleColor},
+    labelsep=period
+}
+
+% -------------------------------------------------
+% Header
+% -------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textcolor{TextGray}{Flow Matching Project}}
+\rhead{\textcolor{TextGray}{MVA 2025--2026}}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.25pt}
+
+% -------------------------------------------------
+% Theorems
+% -------------------------------------------------
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+% -------------------------------------------------
+% Commands
+% -------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\dd}{\mathrm{d}}
+
+% -------------------------------------------------
+% Boxes
+% -------------------------------------------------
+\newtcolorbox{highlightbox}{
+    colback=SoftBlue,
+    colframe=AccentColor,
+    boxrule=0.8pt,
+    arc=2mm,
+    left=1.5mm,right=1.5mm,top=1.2mm,bottom=1.2mm
+}
+
+\newtcolorbox{takeawaybox}{
+    colback=SoftGray,
+    colframe=TitleColor,
+    boxrule=0.6pt,
+    arc=2mm,
+    left=1.5mm,right=1.5mm,top=1.2mm,bottom=1.2mm
+}
+
+% -------------------------------------------------
+% Title block
+% -------------------------------------------------
+\begin{document}
+
+\begin{center}
+    {\LARGE\bfseries\color{TitleColor}
+    On the Closed-Form of Flow Matching}\\[0.25em]
+    {\large\bfseries\color{TitleColor}
+    Generalization Does Not Arise from Target Stochasticity}\\[0.9em]
+
+    {\large Gaspard Beaudouin \hspace{1cm} Yentl Collin}\\[0.25em]
+    {\normalsize Master MVA, Ecole Normale Supérieure Paris-Saclay}\\[0.25em]
+    {\normalsize Generative Modeling (2025--2026)}
+\end{center}
+
+\vspace{0.5em}
+
+\begin{highlightbox}
+\textbf{Project goals.}
+We investigate the theoretical and empirical relationship between Flow Matching and diffusion models. We reproduce key phenomena from the paper on synthetic datasets and study how generalization switching time depends on geometry, dimension, time schedule, and model capacity.
+\end{highlightbox}
+
+\section{Introduction}
+Give the context of modern generative modeling.
+Connect to course topics: diffusion models, score models, ODE formulations, inverse problems.
+State clearly the contributions of your project.
+
+\section{Flow Matching and Diffusion Equivalence}
+\subsection{Diffusion}
+We define a forard SDE, where density $p_t$ satisifies Focker Plank equation.
+Then a reverse SDE, using a score term on $p_t$.
+Using Tower property, the score can be expressed using a conditional expectation. This conditional expectation is the solution of a MSE regression problem, we use it to define a loss.
+Then discretization and sampling using Euler Maryema.
+
+
+\subsection{Flow Matching}
+\paragraph{Intuition behind Flow Matching.}
+Reverse process also satisifies an ODE involving $f(\tilde{X}_t,t) - \frac{g(t)^2}{2}\,\nabla_x\log p_t(\tilde{X}_t)$. And with Flow Matching, we learn this term we will denote a velocity $u$.
+
+We first define probability paths and associated conditional velocity field generating this path (and hence satisifying continuity equation). We then define the marginal velocity field as an expectation conditioned on $Z$ and $X_t = x$, and we can hence learn the conditonal velocity, hence that is the solution of a regression, and we use it to define the conditonal FM loss. We then show that the conditional flow matching loss gradient is the same as the flow matching loss gradient. 
+
+\section{Equivalence with diffusion models}
+
+\subsection{Score matching and ODE}
+
+\subsection{Schedule Conversion}
+
+\subsubsection*{From Diffusion to Flow Matching}
+
+\subsubsection*{From Flow Matching to Diffusion}
+
+
+\begin{takeawaybox}
+\textbf{Key theoretical point.}
+Even when the learned dynamics are close in an idealized regime, the source of empirical generalization may not be target stochasticity itself. This is one of the central claims tested in the paper.
+\end{takeawaybox}
+
+\section{Generalization}
+
+\subsection{Not from the stochasticty of the loss}
+
+$u^\star(tx_0+(1-t)\varepsilon, t)$ is very quickly the same as $u^{\text{cond}}(tx_0+(1-t)\varepsilon, t | x_0)$ that will drive toward $x_0$.
+So learning with $u^\star$ or $u^{\text{cond}}$ is the same. (Nothing new: we know that the gradient of teh conditopnal flow matching loss is the same as the gradient of the flow matching loss ?)
+(Critic of the paper: so why creating an algorithm to learn with the closed-form formula ?)
+
+
+\paragraph{Collapse time.}
+The \emph{collapse time} \(t_C\) is the time at which the generative dynamics stops behaving collectively and becomes dominated by a single training example. Before \(t_C\), several data points still contribute significantly to the denoising or flow field, so the model can remain in a genuinely generative regime. After \(t_C\), one training sample dominates locally, and the trajectory is effectively pulled toward that specific sample, leading to memorization rather than generalization. In Biroli et al., this marks the transition from regime II to regime III of the backward dynamics. :contentReference[oaicite:0]{index=0}
+
+From an entropy viewpoint, \(t_C\) is defined as the time when the entropy per dimension of the noisy population distribution becomes equal to that of a mixture of well-separated Gaussian bumps centered on the training samples:
+\[
+s(t_C)=s_{\mathrm{sep}}(t_C).
+\]
+This means that, at \(t_C\), the noisy components around different training points cease to overlap enough to behave as a smooth population distribution, and the dynamics starts resolving individual samples. :contentReference[oaicite:1]{index=1}
+
+In the closed-form flow matching setting, the same phenomenon appears when the optimal empirical velocity field
+\[
+\hat u^\star(x,t)=\sum_{i=1}^n \lambda_i(x,t)\,\frac{x^{(i)}-x}{1-t}
+\]
+is no longer a meaningful average over many training points because one weight \(\lambda_i(x,t)\) becomes dominant. At that point, the velocity field is essentially aligned with a single conditional direction, which is precisely the flow matching analogue of collapse. :contentReference[oaicite:2]{index=2}
+
+\subsection{But from the approximation of $u^{\star}$ by the neural network capacities}
+
+Failure to learn the optimal velocity field.
+
+
+Figure 2 confirms that generalization arises when the network $u_{\theta}$ fails to estimate the optimal velocity
+field $u^\star$ , and that this failure occurs at two specific time intervals.
+
+\subsection{A switching time}
+
+
+The final image is already determined at $t= 0.4$, and despite the generalization capacity of the learned
+velocity field $u_{\theta}$, following it only after $t \geq0.4$ is not enough to create a new image: generalization
+occurs early and cannot fully be explained by the failure to correctly approximate $u^\star$ at large t.
+
+Coherent avec Figure 2 ou on voit que $u_{\theta}$ n'approxime pas bien $u^\star$ pour un faible $t$. En effet, si pendant cette periode ou $u_{\theta}$ approxime mal $u^\star$  on remplace par $u^\star$, on retombe sur des données d'entrainement comme la théorie le montre. (Seul chose a élucider: on approxime aussi tres mal a $t=1$, ca gene pas pour retomber sur un sample ? On a tous les $\lambda _i$ nuls sauf 1, et on a pas parfaitement $x^{i} - x = 0$)
+
+
+\section{Empirical Flow Matching}
+\subsection{Synthetic datasets}
+Describe your datasets and dimensions.
+
+\subsection{Architecture and optimization}
+Describe the network, optimizer, training length, and time schedule.
+
+\subsection{Measured quantities}
+Define collapse time and switching time operationally.
+
+\section{Reproducing the paper}
+\subsection{Replication of Figure 1}
+Show toy examples and compare empirical collapse time to theoretical predictions.
+
+\subsection{Replication of Figure 2.1 and Figure 3}
+Track the onset of generalization and identify the switching time.
+
+\section{Additional experiments}
+Go beyond the paper:
+\begin{itemize}[leftmargin=1.5em]
+    \item dataset geometry,
+    \item dimension scaling,
+    \item alternative time schedules,
+    \item model width/depth,
+    \item training duration.
+\end{itemize}
+
+\section{Discussion}
+Interpret the results and explain the observed trends.
+State clearly what seems robust and what remains inconclusive.
+
+\section{Use of chatbot tools}
+If you used them, explain exactly how:
+\begin{itemize}[leftmargin=1.5em]
+    \item prompts used,
+    \item refinements,
+    \item useful outputs,
+    \item incorrect or misleading outputs,
+    \item your critical feedback.
+\end{itemize}
+
+\section{Conclusion}
+Summarize your main findings and possible next steps.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\appendix
+\section{Additional figures}
+Add supplementary visualizations here.
+
+\end{document}

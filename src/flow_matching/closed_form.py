@@ -1,70 +1,71 @@
-"""Closed-form optimal velocity field û★ (Proposition 1 of the paper)."""
+"""Closed-form velocity field û★ from Proposition 1 of the paper."""
 
 import torch
 
 
-def softmax_weights(x_t: torch.Tensor, data: torch.Tensor, t: float) -> torch.Tensor:
-    """Compute the softmax weights λ_i(x_t, t) from Proposition 1.
+def softmax_weights(x: torch.Tensor, data: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+    """Compute softmax weights λ_i(x, t) from Equation (6).
 
-    λ(x, t) = softmax( -||x - t * x^(j)||^2 / (2*(1-t)^2) )  for j = 1..n
+    λ(x, t) = softmax( -||x - t·x^(j)||² / (2·(1-t)²) )
 
     Args:
-        x_t: (batch, d) — current positions along the flow
-        data: (n, d) — all training samples x^(1), ..., x^(n)
-        t: scalar time in [0, 1)
+        x: (batch, d)
+        data: (n, d) — training points x^(1), ..., x^(n)
+        t: (batch, 1)
 
     Returns:
-        weights: (batch, n) — softmax weights, each row sums to 1
+        weights: (batch, n)
     """
-    # TODO:
-    # 1. Compute logits: -||x_t[i] - t * data[j]||^2 / (2*(1-t)^2) for all (i, j)
-    #    Hint: use broadcasting. x_t is (B, d), data is (n, d).
-    #    diffs = x_t[:, None, :] - t * data[None, :, :]  -> (B, n, d)
-    #    logits = -||diffs||^2 / (2*(1-t)^2)              -> (B, n)
-    # 2. Return softmax over dimension 1
-    # Note: use the log-sum-exp trick for numerical stability (torch.softmax does this)
-    raise NotImplementedError
+    t_expand = t.unsqueeze(1)                                # (batch, 1, 1)
+    diff = x.unsqueeze(1) - t_expand * data.unsqueeze(0)    # (batch, n, d)
+    sq_dist = (diff ** 2).sum(dim=-1)                        # (batch, n)
+    logits = -sq_dist / (2.0 * (1.0 - t) ** 2 + 1e-12)     # (batch, n)
+    return torch.softmax(logits, dim=-1)
 
 
-def optimal_velocity(x_t: torch.Tensor, data: torch.Tensor, t: float) -> torch.Tensor:
-    """Compute û★(x_t, t) = Σ_i λ_i(x_t, t) * (x^(i) - x_t) / (1 - t).
+def optimal_velocity(x: torch.Tensor, data: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+    """Closed-form optimal velocity field û★(x, t) from Equation (6).
 
-    This is equation (6) of the paper.
+    û★(x, t) = Σ_i λ_i(x,t) · (x^(i) - x) / (1 - t)
 
     Args:
-        x_t: (batch, d) — current positions
-        data: (n, d) — training data
-        t: scalar time in [0, 1)
+        x: (batch, d)
+        data: (n, d)
+        t: (batch, 1)
 
     Returns:
         velocity: (batch, d)
     """
-    # TODO:
-    # 1. Compute weights = softmax_weights(x_t, data, t)  -> (B, n)
-    # 2. Compute directions = (data[None, :, :] - x_t[:, None, :]) / (1 - t)  -> (B, n, d)
-    # 3. Return weighted sum: (weights[:, :, None] * directions).sum(dim=1)  -> (B, d)
-    raise NotImplementedError
+    weights = softmax_weights(x, data, t)                    # (batch, n)
+    directions = (data.unsqueeze(0) - x.unsqueeze(1))        # (batch, n, d)
+    directions = directions / (1.0 - t.unsqueeze(-1) + 1e-12)
+    return (weights.unsqueeze(-1) * directions).sum(dim=1)
 
 
 def cosine_sim_u_star_vs_ucond(
-    x0: torch.Tensor, x1: torch.Tensor, data: torch.Tensor, t: float
-) -> torch.Tensor:
-    """Cosine similarity between û★(x_t, t) and u^cond(x_t, t) = x1 - x0.
+    x0: torch.Tensor, x1: torch.Tensor, data: torch.Tensor, t_values: torch.Tensor
+) -> dict:
+    """Compute cosine similarity between û★ and u_cond for each time value.
 
-    This is the key measurement for Figure 1 of the paper.
+    For Figure 1: at each t, compute
+        cos_sim( û★((1-t)x0 + t·x1, t),  x1 - x0 )
 
     Args:
-        x0: (batch, d) — noise samples from p0
-        x1: (batch, d) — data samples (the ones used to build x_t)
+        x0: (batch, d) — noise samples
+        x1: (batch, d) — data samples
         data: (n, d) — full training set
-        t: scalar time
+        t_values: (T,) — time grid
 
     Returns:
-        similarities: (batch,) — cosine similarities in [-1, 1]
+        dict mapping each t value (float) to a tensor of cosine similarities (batch,)
     """
-    # TODO:
-    # 1. x_t = (1 - t) * x0 + t * x1
-    # 2. u_star = optimal_velocity(x_t, data, t)
-    # 3. u_cond = x1 - x0   (this equals (x1 - x_t) / (1 - t) for linear interpolation)
-    # 4. Return cosine similarity between u_star and u_cond along dim=-1
-    raise NotImplementedError
+    results = {}
+    for t_val in t_values:
+        t_scalar = t_val.item() if isinstance(t_val, torch.Tensor) else t_val
+        t = torch.full((x0.shape[0], 1), t_scalar, device=x0.device)
+        x_t = (1.0 - t) * x0 + t * x1
+        u_star = optimal_velocity(x_t, data, t)
+        u_cond = x1 - x0
+        cos = torch.nn.functional.cosine_similarity(u_star, u_cond, dim=-1)
+        results[t_scalar] = cos
+    return results

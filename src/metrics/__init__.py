@@ -1,1 +1,1 @@
-from .evaluation import cosine_similarity_batch, nearest_neighbor_distance
+from .evaluation import cosine_similarity_batch, nearest_neighbor_distance, velocity_approximation_error
